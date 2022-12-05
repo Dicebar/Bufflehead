@@ -24,3 +24,7 @@ externals:
 
 move-folders:
     Bufflehead/Bufflehead_Options: Bufflehead_Options
+
+manual-changelog:
+ filename: CHANGELOG.md
+ markup-type: markdown
