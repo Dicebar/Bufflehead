@@ -16,7 +16,7 @@ local MOD = Bufflehead
 local MOD_Options = "Bufflehead_Options"
 local _
 
-MOD.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) or (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+MOD.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) or (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC) or (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 MOD.frame = nil
 MOD.headers = {}
 MOD.previews = {}
@@ -52,10 +52,10 @@ local twoPixelBackdrop = { -- backdrop initialization for icons when using optio
 }
 
 local justifyH = { BOTTOM = "CENTER", BOTTOMLEFT = "LEFT", BOTTOMRIGHT = "RIGHT", CENTER = "CENTER", LEFT = "LEFT",
-	RIGHT = "RIGHT", TOP = "CENTER", TOPLEFT = "LEFT", TOPRIGHT = "RIGHT" }
+				   RIGHT = "RIGHT", TOP = "CENTER", TOPLEFT = "LEFT", TOPRIGHT = "RIGHT" }
 
 local justifyV = { BOTTOM = "BOTTOM", BOTTOMLEFT = "BOTTOM", BOTTOMRIGHT = "BOTTOM", CENTER = "MIDDLE", LEFT = "MIDDLE",
-	RIGHT = "MIDDLE", TOP = "TOP", TOPLEFT = "TOP", TOPRIGHT = "TOP" }
+				   RIGHT = "MIDDLE", TOP = "TOP", TOPLEFT = "TOP", TOPRIGHT = "TOP" }
 
 local debuffTypes = { "none", "Disease", "Poison", "Curse", "Magic" }
 
@@ -102,7 +102,9 @@ end
 local function PSetPoint(frame, point, relativeFrame, relativePoint, x, y)
 	if x then x = pixelScale * math.floor(x / pixelScale + 0.5) end
 	if y then y = pixelScale * math.floor(y / pixelScale + 0.5) end
-	frame:SetPoint(point, relativeFrame, relativePoint, x or 0, y or 0)
+	if frame then
+		frame:SetPoint(point, relativeFrame, relativePoint, x or 0, y or 0)
+	end
 end
 
 -- Print debug messages with variable number of arguments in a useful format
@@ -119,13 +121,13 @@ end
 
 -- Check if the options panel is loaded, if not then get it loaded and ask it to toggle open/close status
 function MOD.OptionsPanel()
-  if not optionsLoaded and not optionsFailed then
-    optionsLoaded = true
-    local loaded, reason = LoadAddOn(MOD_Options) -- try to load the options panel on demand
-    if not loaded then
-        print("Bufflehead: failed to load " .. tostring(MOD_Options) .. ": " .. tostring(reason))
-				optionsFailed = true
-    end
+	if not optionsLoaded and not optionsFailed then
+		optionsLoaded = true
+		local loaded, reason = LoadAddOn(MOD_Options) -- try to load the options panel on demand
+		if not loaded then
+			print("Bufflehead: failed to load " .. tostring(MOD_Options) .. ": " .. tostring(reason))
+			optionsFailed = true
+		end
 	end
 	if not optionsFailed then MOD:ToggleOptions() end
 end
@@ -152,10 +154,35 @@ local function GetBuffTooltip()
 	return buffTooltip
 end
 
+local function GetWeaponBuffName(weaponSlot)
+	local ttInfo = C_TooltipInfo.GetInventoryItem("player", weaponSlot, false)
+
+	for i = 1, 30 do
+		if ttInfo.lines[i] then
+			if  ttInfo.lines[i].args[2] then
+				local text = ttInfo.lines[i].args[2].stringVal
+				if text then
+					local name = text:match("^(.+) %(%d+ [^$)]+%)$") -- extract up to left paren if match weapon buff format
+					if name then
+						name = (name:match("^(.*) %d+$")) or name -- remove any trailing numbers
+						return name
+					end
+				else
+					break
+				end
+			end
+
+		end
+
+	end
+
+	return nil
+end
+
 -- No easy way to get this info, so scan item slot info for mainhand and offhand weapons using a tooltip
 -- Weapon buffs are usually formatted in tooltips as name strings followed by remaining time in parentheses
 -- This routine scans the tooltip for the first line that is in this format and extracts the weapon buff name without rank or time
-local function GetWeaponBuffName(weaponSlot)
+local function GetWeaponBuffNameClassic(weaponSlot)
 	local tt = GetBuffTooltip()
 	tt:SetInventoryItem("player", weaponSlot)
 	for i = 1, 30 do
@@ -250,7 +277,7 @@ function MOD:OnEnable()
 	if MOD.MSQ then MSQ_Group = MOD.MSQ:Group("Bufflehead", "Buffs and Debuffs") end
 
 	MSQ_ButtonData = { AutoCast = false, AutoCastable = false, Border = false, Checked = false, Cooldown = false, Count = false, Duration = false,
-		Disabled = false, Flash = false, Highlight = false, HotKey = false, Icon = false, Name = false, Normal = false, Pushed = false }
+					   Disabled = false, Flash = false, Highlight = false, HotKey = false, Icon = false, Name = false, Normal = false, Pushed = false }
 
 	InitializeBuffTooltip()
 
@@ -272,7 +299,7 @@ function MOD:PLAYER_ENTERING_WORLD()
 				local unit, filter = group.unit, group.filter
 				local header = CreateFrame("Frame", name, UIParent, "SecureAuraHeaderTemplate")
 				header:SetFrameLevel(HEADER_FRAME_LEVEL)
-				-- header:SetClampedToScreen(true)
+				--header:SetClampedToScreen(true)
 				header:SetAttribute("unit", unit)
 				header:SetAttribute("filter", filter)
 				RegisterAttributeDriver(header, "state-visibility", "[petbattle] hide; show")
@@ -357,14 +384,25 @@ function MOD.CheckBlizzFrames()
 	-- MOD.Debug("Bufflehead: hide/show", key, "hide:", hide, "show:", show, "vis: ", visible)
 	if hide then
 		BuffFrame:Hide()
-		TemporaryEnchantFrame:Hide()
 		BuffFrame:UnregisterAllEvents()
 		blizzHidden = true
+		if not MOD.isClassic then
+			DebuffFrame:Hide();
+		end
+		if TemporaryEnchantFrame then
+			TemporaryEnchantFrame:Hide();
+		end
 	elseif show then
 		BuffFrame:Show()
 		TemporaryEnchantFrame:Show()
 		BuffFrame:RegisterEvent("UNIT_AURA")
 		blizzHidden = false
+		if not MOD.isClassic then
+			DebuffFrame:Show();
+		end
+		if TemporaryEnchantFrame then
+			TemporaryEnchantFrame:Show();
+		end
 	end
 end
 
@@ -680,7 +718,7 @@ local function UpdateBar(bb)
 		if duration then
 			if remaining > duration then remaining = duration end -- range check
 			if duration > 0.1 then -- real timer bar
-			 	if remaining < 0.05 then stopping = true end
+				if remaining < 0.05 then stopping = true end
 			else -- unlimited bar, check if "full" or "empty"
 				if bb._limited == "empty" then remaining = 0 else remaining = 100 end
 			end
@@ -779,7 +817,7 @@ end
 -- Show a button and skin all its enabled elements
 local function ShowButton(button, name, icon, duration, expire, count, btype, barColor, borderColor, barBorderColor)
 	if ((duration ~= 0) and (expire ~= button._expire)) or (duration ~= button._duration) or (icon ~= button._icon) or
-		(count ~= button._count) or (name ~=button._name) or (btype ~= button._btype) or MOD.uiOpen then
+			(count ~= button._count) or (name ~=button._name) or (btype ~= button._btype) or MOD.uiOpen then
 
 		-- MOD.Debug("att", name, duration, GetTime(), (expire ~= button._expire), (duration ~= button._duration), (icon ~= button._icon),
 		--	(count ~= button._count), (name ~=button._name), (btype ~= button._btype), MOD.uiOpen)
@@ -858,7 +896,11 @@ function MOD:Button_OnAttributeChanged(k, v)
 			expire = 0.01 * math.floor(expire * 100 + 0.5) -- round to nearest 1/100
 			duration = WeaponDuration(id, remaining)
 			icon = GetInventoryItemTexture("player", v)
-			name = GetWeaponBuffName(v)
+			if MOD.isClassic then
+				name = GetWeaponBuffNameClassic(v)
+			else
+				name = GetWeaponBuffName(v)
+			end
 			btype = "none"
 			show = true
 		else
@@ -1208,21 +1250,21 @@ function MOD.FormatTime(t, timeFormat, timeSpaces, timeCase)
 		ts = math.floor(t * 10) / 10 -- truncated to a tenth second
 		if t >= 3600 then
 			if o1 == 1 then f = string.format("%.0f:%02.0f:%02.0f", h, m, s) elseif o1 == 2 then f = string.format("%.0fh %.0fm", h, m)
-				elseif o1 == 3 then f = string.format("%.0fh", hplus) elseif o1 == 4 then f = string.format("%.0fh %.0f", h, m)
-				else f = string.format("%.0f:%02.0f", h, m) end
+			elseif o1 == 3 then f = string.format("%.0fh", hplus) elseif o1 == 4 then f = string.format("%.0fh %.0f", h, m)
+			else f = string.format("%.0f:%02.0f", h, m) end
 		elseif t >= 120 then
 			if o2 == 1 then f = string.format("%.0f:%02.0f", m, s) elseif o2 == 2 then f = string.format("%.0fm %.0fs", m, s)
-				else f = string.format("%.0fm", mplus) end
+			else f = string.format("%.0fm", mplus) end
 		elseif t >= 60 then
 			if o3 == 1 then f = string.format("%.0f:%02.0f", m, s) elseif o3 == 2 then f = string.format("%.0fm %.0fs", m, s)
-				else f = string.format("%.0fm", mplus) end
+			else f = string.format("%.0fm", mplus) end
 		elseif t >= 10 then
 			if o4 == 1 then f = string.format(":%02.0f", s) elseif o4 == 2 then f = string.format("%.0fs", s)
-				else f = string.format("%.0f", s) end
+			else f = string.format("%.0f", s) end
 		else
 			if o5 == 1 then f = string.format(":%02.0f", s) elseif o5 == 2 then f = string.format("%.1fs", ts)
-				elseif o5 == 3 then f = string.format("%.0fs", s) elseif o5 == 4 then f = string.format("%.1f", ts)
-				else f = string.format("%.0f", s) end
+			elseif o5 == 3 then f = string.format("%.0fs", s) elseif o5 == 4 then f = string.format("%.1f", ts)
+			else f = string.format("%.0f", s) end
 		end
 	end
 	if not timeSpaces then f = string.gsub(f, " ", "") end
