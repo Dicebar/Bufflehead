@@ -1,4 +1,4 @@
-## Interface: 90005
+## Interface: 100002
 ## Title: Bufflehead
 ## Notes: Skins player buffs and debuffs
 ## Author: Tojaso/Tomber

@@ -1,4 +1,4 @@
-## Interface: 90005
+## Interface: 100002
 ## Title: Bufflehead Options
 ## Notes: Load-on-demand options for Bufflehead
 ## Author: Tojaso/Tomber
