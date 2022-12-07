@@ -1,0 +1,11 @@
+## Interface: 30400
+## Title: Bufflehead Options
+## Notes: Load-on-demand options for Bufflehead
+## Author: Tojaso/Tomber
+## Version: @project-version@
+## Dependencies: Bufflehead
+## LoadOnDemand: 1
+
+embeds.xml
+Options.lua
+Templates.lua
