@@ -1,7 +1,7 @@
 ## Interface: 20501
 ## Title: Bufflehead Options
 ## Notes: Load-on-demand options for Bufflehead
-## Author: Tojaso/Tomber
+## Author: Tojaso/Tomber, Dorana, Dicebar
 ## Version: @project-version@
 ## Dependencies: Bufflehead
 ## LoadOnDemand: 1

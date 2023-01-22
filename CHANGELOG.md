@@ -1,3 +1,8 @@
+# 22 January 2023
+Fixed Out of Date error for version
+Fixed Blinking tooltips due to buffscanning (Fixed by MrFIXlT)
+
+
 # 12 January 2023
 Fixed error causing multiple buffs to cancel on right-click
 
