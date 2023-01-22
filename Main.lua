@@ -69,7 +69,7 @@ local updateAll = false -- set in combat to defer running event handler
 local MSQ_Group = nil -- create a single group for masque
 local MSQ_ButtonData = nil -- template for masque button data structure
 local weaponDurations = {} -- best guess for weapon buff durations, indexed by enchant id
-local buffTooltip = {} -- temporary table for getting weapon enchant names
+local buffTooltip = nil -- temporary table for getting weapon enchant names
 local transparent = { r = 0, g = 0, b = 0, a = 0 } -- transparent color
 local pg, pp -- global and character-specific profiles
 
@@ -134,23 +134,30 @@ end
 
 -- Initialize tooltip to be used for determining weapon buffs
 local function InitializeBuffTooltip()
-	buffTooltip = CreateFrame("GameTooltip", nil, UIParent)
-	buffTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-	local fs = buffTooltip:CreateFontString()
-	fs:SetFontObject(_G.GameFontNormal)
-	buffTooltip.tooltipLines = {} -- cache of font strings for each line in the tooltip
+	local tipName = "Bufflehead_WeaponBuff_Tooltip"
+	buffTooltip = buffTooltip or CreateFrame("GameTooltip", tipName, nil)
+	buffTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
+	buffTooltip.tooltipLines = buffTooltip.tooltipLines or {} -- cache of font strings for each line in the tooltip
+
 	for i = 1, 30 do
-		local ls = buffTooltip:CreateFontString()
-		ls:SetFontObject(_G.GameFontNormal)
-		buffTooltip:AddFontStrings(ls, fs)
-		buffTooltip.tooltipLines[i] = ls
+		local leftText, rightText = _G[tipName.."TextLeft"..i], _G[tipName.."TextRight"..i]
+		if leftText then
+			buffTooltip.tooltipLines[i] = leftText
+		else
+			local ls = buffTooltip:CreateFontString(tipName.."TextLeft"..i, "ARTWORK", "GameTooltipText")
+			local rs = buffTooltip:CreateFontString(tipName.."TextRight"..i, "ARTWORK", "GameTooltipText")
+			ls:SetFontObject(GameTooltipText)
+			rs:SetFontObject(GameTooltipText)
+			buffTooltip.tooltipLines[i] = ls
+			buffTooltip:AddFontStrings(buffTooltip.tooltipLines[i], rs)
+		end
 	end
 end
 
 -- Return the temporary table for storing buff tooltips
 local function GetBuffTooltip()
 	buffTooltip:ClearLines()
-	if not buffTooltip:IsOwned(UIParent) then buffTooltip:SetOwner(UIParent, "ANCHOR_NONE") end
+	if not buffTooltip:IsOwned(WorldFrame) then buffTooltip:SetOwner(WorldFrame, "ANCHOR_NONE") end
 	return buffTooltip
 end
 
