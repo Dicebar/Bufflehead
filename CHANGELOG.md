@@ -1,3 +1,6 @@
+# 02 May 2024
+- Added Cataclysm support.
+
 # 15 May 2023
 - Fixed broken weapon buffs after tooltip API change.
 
