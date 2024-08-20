@@ -895,20 +895,28 @@ function MOD:Button_OnAttributeChanged(k, v)
 		else
 			hide = true
 		end
-	elseif k == "target-slot" and ((v == 16) or (v == 17)) then -- player mainhand or offhand weapon enchant
-		enchant, remaining, count, id, offEnchant, offRemaining, offCount, offId = GetWeaponEnchantInfo()
+	elseif k == "target-slot" and ((v == 16) or (v == 17) or (v == 18)) then -- player mainhand, offhand or ranged weapon enchant
+		enchant, remaining, count, id,
+		offEnchant, offRemaining, offCount, offId,
+		rangedEnchant, rangedRemaining, rangedCount, rangedId
+			= GetWeaponEnchantInfo()
+
 		if v == 17 then enchant = offEnchant; remaining = offRemaining; count = offCount; id = offId end
+		if v == 18 then enchant = rangedEnchant; remaining = rangedRemaining; count = rangedCount; id = rangedId end
+
 		if enchant then
 			remaining = remaining / 1000 -- blizz function returned milliseconds
 			expire = remaining + GetTime()
 			expire = 0.01 * math.floor(expire * 100 + 0.5) -- round to nearest 1/100
 			duration = WeaponDuration(id, remaining)
 			icon = GetInventoryItemTexture("player", v)
+
 			if MOD.isClassic then
 				name = GetWeaponBuffNameClassic(v)
 			else
 				name = GetWeaponBuffName(v)
 			end
+
 			btype = "none"
 			show = true
 		else
