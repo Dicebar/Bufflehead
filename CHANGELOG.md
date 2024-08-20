@@ -1,6 +1,6 @@
 # 20 August 2024
 - Added ranged weapon enchants support (ie. rogue poisons).
-- Added 
+- Added The War Within fixes (thanks TheAzkas for the temp fix!)
 
 # 02 May 2024
 - Added Cataclysm support.
