@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 20504
 ## Title: Bufflehead
 ## Notes: Skins player buffs and debuffs
 ## Author: Tojaso/Tomber, Dorana, Dicebar
@@ -11,3 +11,4 @@ embeds.xml
 Templates.xml
 Main.lua
 Profile.lua
+Shims.lua

@@ -1,5 +1,6 @@
 # 20 August 2024
 - Added ranged weapon enchants support (ie. rogue poisons).
+- Added 
 
 # 02 May 2024
 - Added Cataclysm support.

@@ -11,3 +11,4 @@ embeds.xml
 Templates.xml
 Main.lua
 Profile.lua
+Shims.lua

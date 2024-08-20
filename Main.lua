@@ -14,6 +14,8 @@
 Bufflehead = LibStub("AceAddon-3.0"):NewAddon("Bufflehead", "AceConsole-3.0", "AceEvent-3.0")
 local MOD = Bufflehead
 local MOD_Options = "Bufflehead_Options"
+local SHIM = {}
+MOD.SHIM = SHIM
 local _
 
 MOD.isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
@@ -127,7 +129,7 @@ end
 function MOD.OptionsPanel()
 	if not optionsLoaded and not optionsFailed then
 		optionsLoaded = true
-		local loaded, reason = LoadAddOn(MOD_Options) -- try to load the options panel on demand
+		local loaded, reason = SHIM:LoadAddOn(MOD_Options) -- try to load the options panel on demand
 		if not loaded then
 			print("Bufflehead: failed to load " .. tostring(MOD_Options) .. ": " .. tostring(reason))
 			optionsFailed = true
@@ -219,8 +221,8 @@ function MOD:OnInitialize()
 	if addonInitialized then return end -- only run this code once
 	addonInitialized = true
 	MOD.frame = CreateFrame("Frame")-- create a frame to catch events
-	LoadAddOn("LibDataBroker-1.1")
-	LoadAddOn("LibDBIcon-1.0")
+	SHIM:LoadAddOn("LibDataBroker-1.1")
+	SHIM:LoadAddOn("LibDBIcon-1.0")
 end
 
 -- Adjust a backdrop's insets for pixel perfect factor
@@ -877,7 +879,7 @@ function MOD:Button_OnAttributeChanged(k, v)
 	button.iconSize = iconSize
 
 	if k == "index" then -- update a buff or debuff
-		name, icon, count, btype, duration, expire = UnitAura(unit, v, filter)
+		name, icon, count, btype, duration, expire = SHIM:UnitAura(unit, v, filter)
 		if name then
 			show = true
 			if filter == FILTER_DEBUFFS then
